@@ -1,20 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Task } from 'src/schemas/tasks.schema';
 
 @Injectable()
 export class TasksService {
-  private tasks: any = [];
+  constructor(@InjectModel(Task.name) private taskModel: Model<Task>) {}
 
-  getTasks() {
-    return this.tasks;
+  async getTasks() {
+    return this.taskModel.find().exec();
   }
 
-  addTask(task:any) {
-    this.tasks.push(task);
-    return { message: 'Tarea agregada' };
+  async addTask(task: { title: string; dueDate: string }) {
+    const newTask = new this.taskModel(task);
+    return newTask.save();
   }
 
-  removeTask(id: number) {
-    this.tasks = this.tasks.filter((_, index) => index !== id);
-    return { message: 'Tarea eliminada' };
+  async removeTask(id: string) {
+  const deleted = await this.taskModel.findByIdAndDelete(id).exec();
+  if (!deleted) {
+    throw new NotFoundException(`No se encontró la meta con id: ${id}`);
+  }
+  return { message: 'Tarea eliminada correctamente' };
   }
 }

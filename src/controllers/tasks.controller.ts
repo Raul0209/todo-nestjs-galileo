@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Body, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Query, BadRequestException, Param } from '@nestjs/common';
 import { TasksService } from 'src/services/tasks.service';
 
 @Controller()
@@ -18,12 +18,8 @@ export class TasksController {
     return this.tasksService.addTask(task);
   }
 
-  @Delete('removeTask')
-  removeTask(@Query('id') id: string) {
-    const index = Number(id);
-    if (isNaN(index)) {
-      throw new BadRequestException('El parámetro id debe ser un número');
-    }
-    return this.tasksService.removeTask(index);
+  @Delete('removeTask/:id')
+  removeTask(@Param('id') id: string) {
+    return this.tasksService.removeTask(id);
   }
 }

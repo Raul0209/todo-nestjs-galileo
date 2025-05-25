@@ -1,20 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Goal } from 'src/schemas/goals.schema';
 
 @Injectable()
 export class GoalsService {
-  private goals: any = [];
+  constructor(@InjectModel(Goal.name) private goalModel: Model<Goal>) { }
 
-  getGoal() {
-    return this.goals;
+  async getGoals() {
+    return this.goalModel.find().exec();
   }
 
-  addGoal(task:any) {
-    this.goals.push(task);
-    return { message: 'Meta agregada' };
+  async addGoal(goal: { title: string; dueDate: string }) {
+    const newGoal = new this.goalModel(goal);
+    return newGoal.save();
   }
 
-  removeGoal(id: number) {
-    this.goals = this.goals.filter((_, index) => index !== id);
-    return { message: 'Meta eliminada' };
+  async removeGoal(id: string) {
+    const toDelete = await this.goalModel.findById(id).exec();
+    if (!toDelete) {
+      throw new NotFoundException(`No se encontró la meta con id: ${id}`);
+    }
+    await this.goalModel.findByIdAndDelete(toDelete._id)
+
+    return { message: 'Meta eliminada correctamente' };
   }
 }
