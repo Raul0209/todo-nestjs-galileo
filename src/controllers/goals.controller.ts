@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Query, BadRequestException } from '@nestjs/common';
 import { GoalsService } from 'src/services/goals-service';
 
 @Controller()
@@ -10,13 +10,20 @@ export class GoalsController {
     return this.goalsService.getGoal();
   }
 
-  @Post('addGoal')
+  @Post('addTask')
   addTask(@Body() task: any) {
+    if (!task || !task.title || !task.dueDate) {
+      throw new BadRequestException('Faltan parámetros obligatorios: title y dueDate');
+    }
     return this.goalsService.addGoal(task);
   }
 
   @Delete('removeGoal')
-  removeTask(@Query('id') id: string) {
-    return this.goalsService.removeGoal(Number(id));
+  removeGoal(@Query('id') id: string) {
+    const index = Number(id);
+    if (isNaN(index)) {
+      throw new BadRequestException('El parámetro id debe ser un número');
+    }
+    return this.goalsService.removeGoal(index);
   }
 }
